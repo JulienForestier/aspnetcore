@@ -22,9 +22,9 @@ jobs:
           token: ${{ secrets.SONAR_TOKEN }}
           args: >
             -Dsonar.sources=.
+            -Dsonar.cs.project=src/AspNetCore.slnx
             -Dsonar.exclusions=**/*.js,**/*.ts,**/*.css,**/*.html,**/*.json,**/*.yaml,**/*.yml,**/*.xml,**/*.sh,**/bin/**,**/obj/**,**/.vs/**,**/artifacts/**,**/packages/**,**/wwwroot/**,**/node_modules/**,**/samples/**,**/*.g.cs,**/*.Designer.cs,**/*.generated.cs,**/*.g.i.cs,**/*Reference.cs,**/ServiceReferences/**
             -Dsonar.test.exclusions=**/*Tests/**,**/*.Tests/**,**/*Test.cs
             -Dsonar.c.file.suffixes=-
             -Dsonar.cpp.file.suffixes=-
             -Dsonar.objc.file.suffixes=-
-            -Dsonar.cs.project=AspNetCore.slnx
