@@ -25,7 +25,5 @@ jobs:
       # 3. Run SonarCloud scan
       - name: SonarQube Scan
         uses: sonarsource/sonarcloud-github-action@v3
-        with:
-          projectBaseDir: ./src
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
