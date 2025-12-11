@@ -9,6 +9,7 @@ on:
 jobs:
   sonar:
     runs-on: windows-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -20,15 +21,16 @@ jobs:
 
       - name: Install SonarScanner for MSBuild
         run: |
-          choco install sonar-scanner-msbuild -y
+          Invoke-WebRequest -Uri https://binaries.sonarsource.com/Distribution/sonar-scanner-msbuild/sonar-scanner-msbuild-5.14.0.36214-net46.zip -OutFile sonar.zip
+          Expand-Archive sonar.zip -DestinationPath C:\sonar
+          $env:PATH += ";C:\sonar\SonarScanner.MSBuild\"
 
-      - name: Begin SonarCloud analysis
+      - name: Begin SonarCloud Analysis
         run: |
-          "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\amd64\MSBuild.exe" /t:Restore
           SonarScanner.MSBuild.exe begin /k:"JulienForestier_aspnetcore" /o:"julienforestier" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /s:"sonar-project.properties"
 
       - name: Build solution
         run: msbuild AspNetCore.slnx /t:Rebuild /p:Configuration=Release
 
-      - name: End SonarCloud analysis
+      - name: End SonarCloud Analysis
         run: SonarScanner.MSBuild.exe end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
