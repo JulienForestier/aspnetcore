@@ -1,4 +1,4 @@
-name: SonarCloud ASP.NET Core Analysis
+name: SonarCloud Minimal .NET Scan
 
 on:
   push:
@@ -9,48 +9,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      # Action SonarCloud officielle pour .NET (inclut automatiquement le scanner MSBuild)
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
         with:
-          dotnet-version: |
-            8.0.x
-            9.0.x
+          args: >
+            begin
+            /k:"JulienForestier_aspnetcore"
+            /o:"julienforestier"
+            /d:sonar.host.url="https://sonarcloud.io"
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+            /d:sonar.exclusions="**/*.java,**/*.cpp,**/*.js,**/*.ts,**/*.py,**/samples/**,**/artifacts/**"
 
-      - name: Install SonarScanner for .NET
-        run: |
-          dotnet tool install --global dotnet-sonarscanner
-
-      - name: Restore
-        run: dotnet restore
-
-      # --- PHASE 1: BEGIN ---
-      - name: Start SonarCloud Scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          dotnet-sonarscanner begin \
-            /k:"JulienForestier_aspnetcore" \
-            /o:"julienforestier" \
-            /d:sonar.token="${SONAR_TOKEN}" \
-            /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.exclusions="**/*.java,**/*.cpp,**/*.ts,**/*.js,**/*.py,**/samples/**,**/artifacts/**" \
-            /d:sonar.cs.opencover.reportsPaths="coverage.opencover.xml"
-
-      # --- BUILD ALL C# ---
-      - name: Build ASP.NET Core
+      - name: Build
         run: dotnet build --no-incremental --configuration Release
 
-      # --- OPTIONNEL : pas de tests si tu veux minimal ---
-      # - name: Run Tests
-      #   run: dotnet test --collect:"XPlat Code Coverage"
-
-      # --- PHASE 2: END ---
-      - name: Finish SonarCloud Scan
+      - name: End SonarCloud
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          args: end
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet-sonarscanner end /d:sonar.token="${SONAR_TOKEN}"
