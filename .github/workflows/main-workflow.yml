@@ -1,4 +1,4 @@
-name: SonarCloud C# Static Analysis
+name: SonarCloud C# Analysis
 
 on:
   push:
@@ -7,24 +7,33 @@ on:
   pull_request:
 
 jobs:
-  sonar:
+  sonarcloud:
+    name: SonarCloud Scan
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # 1. Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Run SonarCloud Analysis
+      # 2. Setup .NET (facultatif si pas de build)
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      # 3. Run SonarCloud scan
+      - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
-          projectBaseDir: .
-          entryPoint: sonar-scanner
+          entryPoint: 'sonar-scanner'
+          projectBaseDir: 'src'
           args: >
             -Dsonar.projectKey=JulienForestier_aspnetcore
             -Dsonar.organization=julienforestier
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-            -Dsonar.cs.project=src/AspNetCore.slnx
+            -Dsonar.cs.project=AspNetCore.slnx
             -Dsonar.sources=.
             -Dsonar.exclusions=**/*.js,**/*.ts,**/*.css,**/*.html,**/*.json,**/*.yaml,**/*.yml,**/*.xml,**/*.sh,**/bin/**,**/obj/**,**/.vs/**,**/artifacts/**,**/packages/**,**/wwwroot/**,**/node_modules/**,**/samples/**,**/*.g.cs,**/*.Designer.cs,**/*.generated.cs,**/*.g.i.cs,**/*Reference.cs,**/ServiceReferences/**
             -Dsonar.test.exclusions=**/*Tests/**,**/*.Tests/**,**/*Test.cs
