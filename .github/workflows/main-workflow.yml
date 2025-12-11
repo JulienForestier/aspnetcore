@@ -1,57 +1,26 @@
-name: SonarCloud .NET Analysis
+name: SonarCloud Minimal Scan
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  build:
+  sonarcloud:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      # 🔥 Lance le scanner CLI SonarCloud
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          dotnet-version: |
-            8.0.x
-            9.0.x
-
-      # --------------------------------------------------------------------
-      # INSTALLATION du SCANNER MSBUILD (le bon, celui avec begin/end)
-      # --------------------------------------------------------------------
-      - name: Install dotnet-sonarscanner
-        run: dotnet tool install --global dotnet-sonarscanner
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # --------------------------------------------------------------------
-      # BEGIN
-      # --------------------------------------------------------------------
-      - name: SonarCloud Begin
-        run: |
-          ~/.dotnet/tools/dotnet-sonarscanner begin \
-            /k:"JulienForestier_aspnetcore" \
-            /o:"julienforestier" \
-            /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
-            /d:sonar.exclusions="**/*.java,**/samples/**"
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      # --------------------------------------------------------------------
-      # BUILD (.csproj)
-      # --------------------------------------------------------------------
-      - name: Build
-        run: dotnet build --configuration Release
-
-      # --------------------------------------------------------------------
-      # END
-      # --------------------------------------------------------------------
-      - name: SonarCloud End
-        run: ~/.dotnet/tools/dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          args: >
+            -Dsonar.projectKey=JulienForestier_aspnetcore
+            -Dsonar.organization=julienforestier
+            -Dsonar.host.url=https://sonarcloud.io
