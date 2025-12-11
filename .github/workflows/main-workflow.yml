@@ -1,20 +1,36 @@
-name: SonarCloud Minimal Scan
+name: SonarCloud Analysis
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
-  sonarcloud:
+  analyze:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 🔥 Lance le scanner CLI SonarCloud
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Install build wrapper + scanner
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip
+          curl -sSLo build-wrapper.zip \
+            https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
+          unzip build-wrapper.zip
+
+      - name: Build ASP.NET Core with build-wrapper
+        run: |
+          ./build-wrapper-linux-x86-64 --out-dir bw-output \
+            ./build.sh
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         env:
@@ -24,3 +40,5 @@ jobs:
             -Dsonar.projectKey=JulienForestier_aspnetcore
             -Dsonar.organization=julienforestier
             -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.cfamily.build-wrapper-output=bw-output
+            -Dsonar.javascript.node.maxspace=4096
