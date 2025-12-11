@@ -13,24 +13,34 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Action SonarCloud officielle pour .NET (inclut automatiquement le scanner MSBuild)
-      - name: SonarCloud Scan
+      - name: Setup .NET SDKs
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      # ---- BEGIN ----
+      - name: SonarCloud Begin
         uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # <--- OBLIGATOIRE !
         with:
           args: >
             begin
             /k:"JulienForestier_aspnetcore"
             /o:"julienforestier"
             /d:sonar.host.url="https://sonarcloud.io"
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-            /d:sonar.exclusions="**/*.java,**/*.cpp,**/*.js,**/*.ts,**/*.py,**/samples/**,**/artifacts/**"
+            /d:sonar.exclusions="**/*.java,**/*.cpp,**/*.js" 
 
+      # ---- BUILD ----
       - name: Build
-        run: dotnet build --no-incremental --configuration Release
+        run: dotnet build --configuration Release
 
-      - name: End SonarCloud
+      # ---- END ----
+      - name: SonarCloud End
         uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # <--- OBLIGATOIRE AUSSI
         with:
           args: end
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
