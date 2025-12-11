@@ -5,81 +5,25 @@ on:
     branches:
       - main
   pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
-  sonarcloud:
-    name: SonarCloud
+  sonar:
+    name: Analyze with SonarCloud
     runs-on: ubuntu-latest
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ----------------------------
-      # Setup .NET
-      # ----------------------------
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '8.0.x'  # adapter à votre version
 
-      - name: Restore dependencies
-        run: dotnet restore
-
-      # ----------------------------
-      # Setup Node.js (pour JS/TS)
-      # ----------------------------
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      # ----------------------------
-      # Install SonarScanner CLI
-      # ----------------------------
-      - name: Install SonarScanner
-        uses: SonarSource/sonarcloud-github-action@v2
-        with:
-          args: >
-            -Dsonar.organization=julienforestier
-            -Dsonar.projectKey=JulienForestier_aspnetcore
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
-      # ----------------------------
-      # Optional: Setup build-wrapper for C/C++ analysis
-      # ----------------------------
-      - name: Download Sonar build-wrapper
-        run: |
-          curl -sSLo build-wrapper.zip https://sonarcloud.io/static/cpp/build-wrapper-linux-x86.zip
-          unzip build-wrapper.zip
-          chmod +x build-wrapper-linux-x86-64/build-wrapper-linux-x86-64
-
-      - name: Build project using build-wrapper
-        run: |
-          ./build-wrapper-linux-x86-64/build-wrapper-linux-x86-64 --out-dir bw-output dotnet build --configuration Release
-
-      # ----------------------------
-      # Run SonarScanner
-      # ----------------------------
-      - name: Run SonarCloud Analysis
+      - name: Run SonarCloud analysis
         uses: SonarSource/sonarcloud-github-action@v2
         with:
           projectBaseDir: .
           args: >
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-            -Dsonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
-            -Dsonar.coverage.exclusions=**/*.g.cs,**/*.Designer.cs,**/*AssemblyInfo.cs,**/obj/**,**/bin/**
-            -Dsonar.exclusions=**/*.java,**/obj/**,**/bin/**,**/.vs/**,**/artifacts/**,**/packages/**,**/wwwroot/**,**/node_modules/**,**/samples/**
-
-      # ----------------------------
-      # Optional: Publish test results if needed
-      # ----------------------------
-      - name: Publish test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: TestResults
-          path: '**/TestResults/*.xml'
