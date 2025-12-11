@@ -8,25 +8,27 @@ on:
 
 jobs:
   sonar:
-    name: SonarCloud Scan
     runs-on: windows-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '7.0.x'  # ajuste selon ton projet
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
 
-    - name: Begin SonarCloud analysis
-      run: |
-        dotnet tool install --global dotnet-sonarscanner
-        dotnet sonarscanner begin /k:"JulienForestier_aspnetcore" /o:"julienforestier" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /s:"sonar-project.properties"
+      - name: Install SonarScanner for MSBuild
+        run: |
+          choco install sonar-scanner-msbuild -y
 
-    - name: Build solution
-      run: dotnet build AspNetCore.slnx -c Release
+      - name: Begin SonarCloud analysis
+        run: |
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\amd64\MSBuild.exe" /t:Restore
+          SonarScanner.MSBuild.exe begin /k:"JulienForestier_aspnetcore" /o:"julienforestier" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /s:"sonar-project.properties"
 
-    - name: End SonarCloud analysis
-      run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+      - name: Build solution
+        run: msbuild AspNetCore.slnx /t:Rebuild /p:Configuration=Release
+
+      - name: End SonarCloud analysis
+        run: SonarScanner.MSBuild.exe end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
