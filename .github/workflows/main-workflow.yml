@@ -18,24 +18,15 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '7.0.x'  # Ajuste selon la version de ton projet
+        dotnet-version: '7.0.x'  # ajuste selon ton projet
 
-    - name: Install SonarScanner for MSBuild
-      uses: sonarsource/sonarcloud-github-action@v2
-      with:
-        args: >
-          begin 
-          /k:"JulienForestier_aspnetcore" 
-          /o:"julienforestier" 
-          /d:sonar.login="${{ secrets.SONAR_TOKEN }}" 
-          /s:"sonar-project.properties"
+    - name: Begin SonarCloud analysis
+      run: |
+        dotnet tool install --global dotnet-sonarscanner
+        dotnet sonarscanner begin /k:"JulienForestier_aspnetcore" /o:"julienforestier" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /s:"sonar-project.properties"
 
     - name: Build solution
-      run: msbuild AspNetCore.slnx /t:Rebuild /p:Configuration=Release
+      run: dotnet build AspNetCore.slnx -c Release
 
-    - name: Complete SonarCloud analysis
-      uses: sonarsource/sonarcloud-github-action@v2
-      with:
-        args: >
-          end 
-          /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+    - name: End SonarCloud analysis
+      run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
