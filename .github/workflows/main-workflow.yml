@@ -17,12 +17,15 @@ jobs:
       - name: Run SonarCloud Analysis
         uses: SonarSource/sonarcloud-github-action@v2
         with:
-          organization: julienforestier
-          projectKey: JulienForestier_aspnetcore
-          token: ${{ secrets.SONAR_TOKEN }}
+          projectBaseDir: .
+          entryPoint: sonar-scanner
           args: >
-            -Dsonar.sources=.
+            -Dsonar.projectKey=JulienForestier_aspnetcore
+            -Dsonar.organization=julienforestier
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
             -Dsonar.cs.project=src/AspNetCore.slnx
+            -Dsonar.sources=.
             -Dsonar.exclusions=**/*.js,**/*.ts,**/*.css,**/*.html,**/*.json,**/*.yaml,**/*.yml,**/*.xml,**/*.sh,**/bin/**,**/obj/**,**/.vs/**,**/artifacts/**,**/packages/**,**/wwwroot/**,**/node_modules/**,**/samples/**,**/*.g.cs,**/*.Designer.cs,**/*.generated.cs,**/*.g.i.cs,**/*Reference.cs,**/ServiceReferences/**
             -Dsonar.test.exclusions=**/*Tests/**,**/*.Tests/**,**/*Test.cs
             -Dsonar.c.file.suffixes=-
