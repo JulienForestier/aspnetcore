@@ -23,20 +23,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       # 3. Run SonarCloud scan
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
-        with:
-          entryPoint: 'sonar-scanner'
-          projectBaseDir: 'src'
-          args: >
-            -Dsonar.projectKey=JulienForestier_aspnetcore
-            -Dsonar.organization=julienforestier
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-            -Dsonar.cs.project=AspNetCore.slnx
-            -Dsonar.sources=.
-            -Dsonar.exclusions=**/*.js,**/*.ts,**/*.css,**/*.html,**/*.json,**/*.yaml,**/*.yml,**/*.xml,**/*.sh,**/bin/**,**/obj/**,**/.vs/**,**/artifacts/**,**/packages/**,**/wwwroot/**,**/node_modules/**,**/samples/**,**/*.g.cs,**/*.Designer.cs,**/*.generated.cs,**/*.g.i.cs,**/*Reference.cs,**/ServiceReferences/**
-            -Dsonar.test.exclusions=**/*Tests/**,**/*.Tests/**,**/*Test.cs
-            -Dsonar.c.file.suffixes=-
-            -Dsonar.cpp.file.suffixes=-
-            -Dsonar.objc.file.suffixes=-
+      - name: SonarQube Scan
+        uses: sonarsource/sonarcloud-github-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
