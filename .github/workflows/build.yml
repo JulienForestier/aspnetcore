@@ -47,6 +47,7 @@ jobs:
         shell: powershell
         run: |
           New-Item -Path $env:TEMP\scanner -ItemType Directory -Force
+          ./restore.cmd
           dotnet tool install dotnet-sonarscanner --tool-path $env:TEMP\scanner --ignore-failed-sources
 
       - name: Build and analyze
