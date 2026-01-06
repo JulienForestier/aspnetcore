@@ -1,68 +1,62 @@
-name: SonarQube Full Analysis
+name: CI .NET + Sonar
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore & Build
+        shell: powershell
+        run: |
+          dotnet restore AspNetCore.slnx
+          dotnet build AspNetCore.slnx -c Release --no-restore
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-output
+          path: src/**/bin/Release
 
+  sonar:
+    runs-on: windows-latest
+    needs: build   # attend que le job build soit terminé
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-output
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: 'zulu'
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Cache SonarScanner
-        uses: actions/cache@v4
-        with:
-          path: ${{ runner.temp }}\scanner
-          key: ${{ runner.os }}-sonar-scanner
-          restore-keys: |
-            ${{ runner.os }}-sonar-scanner
-
       - name: Install SonarScanner
         shell: powershell
         run: |
           New-Item -Path $env:TEMP\scanner -ItemType Directory -Force
           ./restore.cmd
           dotnet tool install dotnet-sonarscanner --tool-path $env:TEMP\scanner --ignore-failed-sources
-
-      - name: Build and analyze
+      - name: Run SonarCloud Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
           $scanner = "$env:TEMP\scanner\dotnet-sonarscanner"
-
-          # Début de l'analyse Sonar
           & $scanner begin /k:"JulienForestier_aspnetcore2" /o:"julienforestier" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.token="$env:SONAR_TOKEN"
 
-          # Build de la solution principale
-          dotnet restore AspNetCore.slnx
-          dotnet build AspNetCore.slnx -c Release --no-restore
-
-          # Fin de l'analyse Sonar
+          # On build rien ici, on peut juste référencer les artefacts si besoin
           & $scanner end /d:sonar.token="$env:SONAR_TOKEN"
