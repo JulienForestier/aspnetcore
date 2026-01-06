@@ -47,6 +47,16 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"JulienForestier_aspnetcore2" /o:"julienforestier" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-          dotnet build
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          $scanner = "${{ runner.temp }}\scanner\dotnet-sonarscanner"
+
+          # Début de l'analyse Sonar
+          & $scanner begin `
+            /k:"JulienForestier_aspnetcore2" `
+            /o:"julienforestier" `
+            /d:sonar.token="$env:SONAR_TOKEN"
+
+          # Build explicite de la solution
+          dotnet build src\Framework\Framework.slnf -c Release --no-restore
+
+          # Fin de l'analyse Sonar
+          & $scanner end /d:sonar.token="$env:SONAR_TOKEN"
