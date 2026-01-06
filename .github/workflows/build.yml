@@ -37,7 +37,11 @@ jobs:
         run: |
           New-Item -Path ${{ runner.temp }}\scanner -ItemType Directory
           ./restore.cmd
-          dotnet tool update dotnet-sonarscanner --tool-path ${{ runner.temp }}\scanner
+          dotnet tool install dotnet-sonarscanner `
+            --tool-path ${{ runner.temp }}\scanner `
+            --add-source "https://api.nuget.org/v3/index.json" `
+            --ignore-failed-sources
+
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
