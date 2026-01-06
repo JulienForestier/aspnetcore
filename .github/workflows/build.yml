@@ -62,7 +62,7 @@ jobs:
         run: |
           & "${{ runner.temp }}\scanner\dotnet-sonarscanner" begin `
             /k:"JulienForestier_aspnetcore2" `
-            /o:"julienForestier" `
+            /o:"julienforestier" `
             /d:sonar.host.url="https://sonarcloud.io" `
             /d:sonar.token="$env:SONAR_TOKEN" `
             /d:sonar.scanner.skipJreProvisioning=true `
