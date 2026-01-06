@@ -20,6 +20,7 @@ jobs:
       - name: Restore & Build
         shell: powershell
         run: |
+          ./restore.cmd
           dotnet restore AspNetCore.slnx
           dotnet build AspNetCore.slnx -c Release --no-restore
       - name: Upload build artifacts
